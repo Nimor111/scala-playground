@@ -1,19 +1,10 @@
 package computations
 
 sealed trait LinkedListFold {
-  // def fold[U](acc: U, f: (T, U) => U): U = {
-  //   this match {
-  //     case EndF() => acc
-  //     case PairF(head, tail) => tail.fold(f(head, acc), f)
-  //     // case PairF(head, tail) => f(head, tail.fold(acc, f))
-  //   }
-  // }
-
   def fold(acc: Int, f: (Int, Int) => Int): Int = {
     this match {
       case EndF => acc
-      case PairF(head, tail) => tail.fold(f(head, acc), f)
-      // case PairF(head, tail) => f(head, tail.fold(acc, f))
+      case PairF(head, tail) => f(head, tail.fold(acc, f))
     }
   }
 
