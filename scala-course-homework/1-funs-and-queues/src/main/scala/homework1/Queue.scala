@@ -1,39 +1,44 @@
 package homework1
 
-class Queue(val queue: List[Int]) {
+class Queue(val pushed: List[Int], val popped: List[Int]) {
   def peek: Int = {
-    queue.isEmpty match {
-      case true => throw new NoSuchElementException
-      case false => queue(0)
+    popped match {
+      case x :: _ => x
+      case Nil => {
+        pushed match {
+          case Nil => throw new NoSuchElementException
+          case xs => xs.last
+        }
+      }
     }
   }
 
   def push(n: Int): Queue = {
-    new Queue(queue ::: List(n))
+    new Queue(n :: pushed, popped)
   }
 
   def pop: Queue = {
-    queue match {
-      case List() => throw new NoSuchElementException
-      case _ :: xs => new Queue(xs)
+    popped match {
+      case Nil => throw new NoSuchElementException
+      case _ :: xs => new Queue(pushed, xs)
     }
   }
 
   def isEmpty: Boolean = {
-    queue.isEmpty
+    pushed.isEmpty && popped.isEmpty
   }
 
   def size: Int = {
-    queue.size
+    pushed.size + popped.size
   }
 }
 
 object Queue {
   def empty: Queue = {
-    new Queue(List())
+    new Queue(Nil, Nil)
   }
 
   def apply(xs: Seq[Int]): Queue = {
-    new Queue(xs.toList)
+    new Queue(Nil, xs.toList)
   }
 }
