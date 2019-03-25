@@ -1,6 +1,10 @@
 package homework1
 
-class Queue(val pushed: List[Int], val popped: List[Int]) {
+class Queue(val pushed: List[Int], val popped: List[Int]) extends Iterable[Int] {
+  override def iterator: Iterator[Int] = {
+    (popped ::: pushed.reverse).iterator
+  }
+
   def peek: Int = {
     popped match {
       case x :: _ => x
@@ -24,11 +28,11 @@ class Queue(val pushed: List[Int], val popped: List[Int]) {
     }
   }
 
-  def isEmpty: Boolean = {
+  override def isEmpty: Boolean = {
     pushed.isEmpty && popped.isEmpty
   }
 
-  def size: Int = {
+  override def size: Int = {
     pushed.size + popped.size
   }
 }
