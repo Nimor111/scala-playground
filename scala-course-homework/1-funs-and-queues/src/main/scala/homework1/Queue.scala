@@ -23,7 +23,10 @@ class Queue(val pushed: List[Int], val popped: List[Int]) extends Iterable[Int] 
 
   def pop: Queue = {
     popped match {
-      case Nil => throw new NoSuchElementException
+      case Nil => pushed match {
+        case Nil => throw new NoSuchElementException
+        case xs => new Queue(Nil, xs.reverse.tail)
+      }
       case _ :: xs => new Queue(pushed, xs)
     }
   }
@@ -43,6 +46,6 @@ object Queue {
   }
 
   def apply(xs: Seq[Int]): Queue = {
-    new Queue(Nil, xs.toList)
+    new Queue(xs.toList.reverse, Nil)
   }
 }
