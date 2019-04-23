@@ -89,63 +89,64 @@ class FunctionsTest extends FlatSpec with Matchers {
     countCoinChangeVariants(List(5, 1, 2), 1000) shouldBe 50401
     countCoinChangeVariants(List(5, 2, 1), 1000) shouldBe 50401
   }
+
+  type Graph = Map[Int, List[Int]]
+
+  val fullGraph: Graph = Map(
+    1 -> List(2, 5, 8),
+    2 -> List(1, 3, 6),
+    3 -> List(2, 4),
+    4 -> List(3),
+    5 -> List(6),
+    6 -> List(7),
+    8 -> List(9)
+  ).withDefaultValue(List.empty)
+
+  def toList(queue: Queue): List[Int] = {
+    if (queue.isEmpty) List.empty
+    else queue.peek :: toList(queue.pop)
+  }
+
+  "bfsTraversal" should "find path starting from root" in {
+    val result = bfsTraversal(1, 6, fullGraph)
+
+    toList(result) shouldBe List(1, 2, 5, 8, 3, 6)
+  }
+
+  it should "find path starting from bottom" in {
+    val result = bfsTraversal(4, 6, fullGraph)
+
+    toList(result) shouldBe List(4, 3, 2, 1, 6)
+  }
+
+  it should "not go through a node more than once" in {
+    val graph = Map(
+      1 -> List(2, 3),
+      2 -> List(4),
+      3 -> List(4),
+      4 -> List(5)
+    ).withDefaultValue(List.empty)
+
+    val result = bfsTraversal(1, 5, graph)
+
+    toList(result) shouldBe List(1, 2, 3, 4, 5)
+  }
+
+  it should "return the path so far even if the end has not been reached" in {
+    val graph = fullGraph ++ Map(
+      2 -> List(1, 3),
+      5 -> List.empty
+    )
+
+    val result = bfsTraversal(1, 6, graph)
+
+    toList(result) shouldBe List(1, 2, 5, 8, 3, 9, 4)
+  }
+
+  it should "return only the start if it doesn't have neighbours" in {
+    val result =
+      bfsTraversal(1, 10, (Map.empty: Graph).withDefaultValue(List.empty))
+
+    toList(result) shouldBe List(1)
+  }
 }
-//  type Graph = Map[Int, List[Int]]
-//
-//  val fullGraph: Graph = Map(
-//    1 -> List(2, 5, 8),
-//    2 -> List(1, 3, 6),
-//    3 -> List(2, 4),
-//    4 -> List(3),
-//    5 -> List(6),
-//    6 -> List(7),
-//    8 -> List(9)
-//  ).withDefaultValue(List.empty)
-//
-//  def toList(queue: Queue): List[Int] = {
-//    if (queue.isEmpty) List.empty
-//    else queue.peek :: toList(queue.pop)
-//  }
-//
-//  "bfsTraversal" should "find path starting from root" in {
-//    val result = bfsTraversal(1, 6, fullGraph)
-//
-//    toList(result) shouldBe List(1, 2, 5, 8, 3, 6)
-//  }
-//
-//  it should "find path starting from bottom" in {
-//    val result = bfsTraversal(4, 6, fullGraph)
-//
-//    toList(result) shouldBe List(4, 3, 2, 1, 6)
-//  }
-//
-//  it should "not go through a node more than once" in {
-//    val graph = Map(
-//      1 -> List(2, 3),
-//      2 -> List(4),
-//      3 -> List(4),
-//      4 -> List(5)
-//    ).withDefaultValue(List.empty)
-//
-//    val result = bfsTraversal(1, 5, graph)
-//
-//    toList(result) shouldBe List(1, 2, 3, 4, 5)
-//  }
-//
-//  it should "return the path so far even if the end has not been reached" in {
-//    val graph = fullGraph ++ Map(
-//      2 -> List(1, 3),
-//      5 -> List.empty
-//    )
-//
-//    val result = bfsTraversal(1, 6, graph)
-//
-//    toList(result) shouldBe List(1, 2, 5, 8, 3, 9, 4)
-//  }
-//
-//  it should "return only the start if it doesn't have neighbours" in {
-//    val result = bfsTraversal(1, 10, (Map.empty: Graph).withDefaultValue(List.empty))
-//
-//    toList(result) shouldBe List(1)
-//  }
-//}

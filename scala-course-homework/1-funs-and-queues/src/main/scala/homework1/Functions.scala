@@ -1,5 +1,7 @@
 package homework1
 
+import scala.annotation.tailrec
+
 object Functions {
   def fromDigits(digits: List[Int], radix: Int = 10): Int = {
     val indices = (0 to digits.size - 1).toList
@@ -69,6 +71,68 @@ object Functions {
         change)
   }
 
-  def bfsTraversal(start: Int, end: Int, neighbours: Int => List[Int]): Queue =
-    ???
+  def bfsTraversalIter(start: Int,
+                       end: Int,
+                       neighbours: Int => List[Int]): Queue = {
+    var queue = Queue.empty.push(start)
+    var visited = Set.empty[Int]
+    var path = Queue.empty
+
+    while (!queue.isEmpty) {
+      val state = queue.peek
+      visited = visited + state
+      queue = queue.pop
+      path = path.push(state)
+      if (state == end) {
+        return path
+      }
+
+      neighbours(state).foreach(n => {
+        if (!visited.contains(n)) {
+          queue = queue.push(n)
+          visited = visited + n
+        }
+      })
+    }
+
+    path
+  }
+
+  def bfsTraversal(start: Int, end: Int, neighbour: Int => List[Int]): Queue = {
+    @tailrec
+    def bfs(start: Int,
+            end: Int,
+            neighbour: Int => List[Int],
+            visited: Set[Int],
+            queue: Queue,
+            path: Queue): Queue = {
+      // found end
+      if (start == end) {
+        return path.push(end)
+      }
+
+      val notVisited =
+        neighbour(start).filter(n => !(visited + start).contains(n))
+      val newQueue = Queue(queue.toList ++ notVisited).pop
+
+      // end not found, no more states
+      if (newQueue.isEmpty) {
+        return path.push(start)
+      }
+
+      bfs(newQueue.peek,
+          end,
+          neighbour,
+          visited ++ notVisited + start,
+          newQueue,
+          path.push(start))
+    }
+
+    bfs(start,
+        end,
+        neighbour,
+        Set.empty[Int],
+        Queue.empty.push(start),
+        Queue.empty)
+  }
 }
