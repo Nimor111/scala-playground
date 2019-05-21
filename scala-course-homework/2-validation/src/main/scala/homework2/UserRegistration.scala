@@ -90,40 +90,37 @@ object UserRegistration {
       .zipMap((p1: String, _: String, _: String) => p1)
   }
 
-  def validateBirthYear(
-      birthYear: String): Validated[RegistrationFormError, Int] = {
+  def validateBirthYear(birthYear: String): Validated[DateError, Int] = {
     if (birthYear == "" || !(birthYear forall Character.isDigit))
-      Invalid(InvalidBirthdayDate(Singleton(YearIsNotAnInteger(birthYear))))
+      Invalid(Singleton(YearIsNotAnInteger(birthYear)))
     else Valid(birthYear.toInt)
   }
 
   def validateBirthMonthInteger(
-      birthMonth: String): Validated[RegistrationFormError, String] = {
+      birthMonth: String): Validated[DateError, String] = {
     if (birthMonth == "" || !(birthMonth forall Character.isDigit))
-      Invalid(InvalidBirthdayDate(Singleton(YearIsNotAnInteger(birthMonth))))
+      Invalid(Singleton(MonthIsNotAnInteger(birthMonth)))
     else Valid(birthMonth)
   }
 
-  def validateBirthMonthRange(
-      birthMonth: String): Validated[RegistrationFormError, Int] = {
+  def validateBirthMonthRange(birthMonth: String): Validated[DateError, Int] = {
     val month = birthMonth.toInt
     if (month < 1 || month > 12)
-      Invalid(InvalidBirthdayDate(Singleton(MonthOutOfRange(month))))
+      Invalid(Singleton(MonthOutOfRange(month)))
     else Valid(month)
   }
 
   def validateBirthDayInteger(
-      birthDay: String): Validated[RegistrationFormError, String] = {
+      birthDay: String): Validated[DateError, String] = {
     if (birthDay == "" || !(birthDay forall Character.isDigit))
-      Invalid(InvalidBirthdayDate(Singleton(YearIsNotAnInteger(birthDay))))
+      Invalid(Singleton(DayIsNotAnInteger(birthDay)))
     else Valid(birthDay)
   }
 
-  def validateBirthDayRange(
-      birthDay: String): Validated[RegistrationFormError, Int] = {
+  def validateBirthDayRange(birthDay: String): Validated[DateError, Int] = {
     val day = birthDay.toInt
     if (day < 1 || day > 31)
-      Invalid(InvalidBirthdayDate(Singleton(DayOutOfRange(day))))
+      Invalid(Singleton(DayOutOfRange(day)))
     else Valid(day)
   }
 
@@ -135,26 +132,74 @@ object UserRegistration {
     else Invalid(Singleton(InvalidPostalCode(postalCode)))
   }
 
-  def validateDate(birthYear: String,
-                   birthMonth: String,
-                   birthDay: String): Validated[RegistrationFormError, Date] = {
-    for {
-      birthYear <- validateBirthYear(birthYear)
-      birthMonth <- validateBirthMonthInteger(birthMonth)
-      birthMonthInt <- validateBirthMonthRange(birthMonth)
-      birthDay <- validateBirthDayInteger(birthDay)
-      birthDayInt <- validateBirthDayRange(birthDay)
-      date <- validateDateFormat(Date(birthYear, birthMonthInt, birthDayInt))
-    } yield date
-  }
-
-  def validateDateFormat(date: Date): Validated[RegistrationFormError, Date] = {
+  def validateDateFormat(date: Date): Validated[DateError, Date] = {
     import homework2.Validated.OptionToValidated
     Date
       .applyOption(date.year, date.month, date.day)
-      .toValidated(
-        InvalidBirthdayDate(
-          Singleton(InvalidDate(Date(date.year, date.month, date.day)))))
+      .toValidated(InvalidDate(Date(date.year, date.month, date.day)))
+  }
+
+  def validateDateYearIsNotInTheFuture(
+      date: Date,
+      today: Date): Validated[RegistrationFormError, Date] = {
+    if (date.year > today.year) {
+      Invalid(BirthdayDateIsInTheFuture(date))
+    } else Valid(date)
+  }
+
+  def validateDateMonthIsNotInTheFuture(
+      date: Date,
+      today: Date): Validated[RegistrationFormError, Date] = {
+    if (date.month > today.month) {
+      Invalid(BirthdayDateIsInTheFuture(date))
+    } else Valid(date)
+  }
+
+  def validateDateDayIsNotInTheFuture(
+      date: Date,
+      today: Date): Validated[RegistrationFormError, Date] = {
+    if (date.day > today.day) {
+      Invalid(BirthdayDateIsInTheFuture(date))
+    } else Valid(date)
+  }
+
+  def validateDateIsNotInTheFuture(
+      date: Date,
+      today: Date): Validated[RegistrationFormError, Date] = {
+    for {
+      _ <- validateDateYearIsNotInTheFuture(date, today)
+      _ <- validateDateMonthIsNotInTheFuture(date, today)
+      d <- validateDateDayIsNotInTheFuture(date, today)
+    } yield d
+  }
+
+  def validateDate(birthYear: String,
+                   birthMonth: String,
+                   birthDay: String,
+                   today: Date): Validated[RegistrationFormError, Date] = {
+    val validated = for {
+      dateInfo <- (validateBirthYear(birthYear),
+                   validateBirthMonthInteger(birthMonth),
+                   validateBirthDayInteger(birthDay)).zip
+      dateInfoInts <- (validateBirthYear(birthYear),
+                       validateBirthMonthRange(dateInfo._2),
+                       validateBirthDayRange(dateInfo._3)).zip
+      date <- validateDateFormat(
+        Date(dateInfoInts._1, dateInfoInts._2, dateInfoInts._3))
+    } yield date
+
+    if (!validated.isValid) {
+      val Invalid(errors) = validated
+
+      Invalid(InvalidBirthdayDate(errors))
+    } else {
+      val Valid(date) = validated
+      val isInTheFuture = validateDateIsNotInTheFuture(date, today)
+
+      if (!isInTheFuture.isValid) {
+        Invalid(Singleton(BirthdayDateIsInTheFuture(date)))
+      } else Valid(date)
+    }
   }
 
   def registerUser(userCountryPostalCodeVerifier: String => Boolean,
@@ -163,7 +208,7 @@ object UserRegistration {
     (validateName(form.name),
      validateEmail(form.email),
      validatePassword(form.password, form.passwordConfirmation),
-     validateDate(form.birthYear, form.birthMonth, form.birthDay),
+     validateDate(form.birthYear, form.birthMonth, form.birthDay, today),
      validatePostalCode(userCountryPostalCodeVerifier, form.postalCode))
       .zipMap(User.apply)
   }

@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 
 object Functions {
   def fromDigits(digits: List[Int], radix: Int = 10): Int = {
-    val indices = (0 to digits.size - 1).toList
+    val indices = (0 until digits.size - 1).toList
     def calculate(pair: (Int, Int)): Int = {
       val pos = digits.size - 1 - pair._2
       pair._1 * scala.math.pow(radix, pos).toInt

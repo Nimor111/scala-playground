@@ -22,34 +22,34 @@ sealed trait Chain[+A] {
   }
 
   def foldLeft[B](initial: B)(f: (B, A) => B): B = this.listify match {
-    case Singleton(h)            => f(initial, h)
+    case Singleton(h) => f(initial, h)
     case Append(Singleton(h), t) => t.foldLeft(f(initial, h))(f)
-    case _                       => sys.error("Unexpected listify format")
+    case _ => sys.error("Unexpected listify format")
   }
 
   def reduceLeft[B >: A](f: (B, A) => B): B = this.listify match {
-    case Singleton(first)               => first
+    case Singleton(first) => first
     case Append(Singleton(first), rest) => rest.foldLeft(first: B)(f)
-    case _                              => sys.error("Unexpected listify format")
+    case _ => sys.error("Unexpected listify format")
   }
 
   def map[B](f: A => B): Chain[B] = this.listify match {
-    case Singleton(first)        => Singleton(f(first))
+    case Singleton(first) => Singleton(f(first))
     case Append(Singleton(h), t) => f(h) +: t.map(f)
-    case _                       => sys.error("Unexpected listify format")
+    case _ => sys.error("Unexpected listify format")
   }
 
   def flatMap[B](f: A => Chain[B]): Chain[B] = this.listify match {
-    case Singleton(first)        => f(first)
+    case Singleton(first) => f(first)
     case Append(Singleton(h), t) => f(h) ++ t.flatMap(f)
-    case _                       => sys.error("Unexpected listify format")
+    case _ => sys.error("Unexpected listify format")
   }
 
   def foreach(f: A => Unit): Unit = foldLeft(())((_, next) => f(next))
 
   override def equals(that: Any): Boolean = that match {
     case c: Chain[_] => c.toList == this.toList
-    case _           => false
+    case _ => false
   }
 
   override def hashCode: Int = foldLeft(0) {
@@ -73,11 +73,11 @@ sealed trait Chain[+A] {
   }
 
   def listify: Chain[A] = this match {
-    case Singleton(h)            => Singleton(h)
+    case Singleton(h) => Singleton(h)
     case Append(Singleton(h), r) => Singleton(h) ++ r.listify
     case Append(l, r) =>
       l.tail match {
-        case None    => l ++ r.listify
+        case None => l ++ r.listify
         case Some(t) => Singleton(l.head) ++ Append(t, r).listify
       }
   }
@@ -90,7 +90,7 @@ case class Append[+A](left: Chain[A], right: Chain[A]) extends Chain[A] {
   def head: A = left.head
   def tail: Option[Chain[A]] = left match {
     case Singleton(_) => Some(right)
-    case _            => listify.tail
+    case _ => listify.tail
   }
 }
 

@@ -29,3 +29,6 @@ project/plugins/project/
 
 ## IDE
 .idea
+
+## Additional Files
+*.zip

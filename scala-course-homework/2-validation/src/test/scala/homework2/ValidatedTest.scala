@@ -1,6 +1,6 @@
 package homework2
 
-import org.scalatest.{FlatSpec, FunSuite, Matchers}
+import org.scalatest.{ FlatSpec, FunSuite, Matchers }
 
 class ValidatedTest extends FlatSpec with Matchers {
   "zip" should "combine valid instances" in {
@@ -22,7 +22,7 @@ class ValidatedTest extends FlatSpec with Matchers {
   it should "concatenate invalid values" in {
     Invalid(Chain("Invalid password"))
       .map2(Invalid(Chain("Invalid username")))((a: String, b: String) => a + b) shouldEqual Invalid(
-      Chain("Invalid password", "Invalid username"))
+        Chain("Invalid password", "Invalid username"))
   }
 
   "zip" should "work on 3-tuples" in {

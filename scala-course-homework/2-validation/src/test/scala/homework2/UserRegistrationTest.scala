@@ -1,7 +1,7 @@
 package homework2
 
 import homework2.UserRegistration.registerUser
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 
 class UserRegistrationTest extends FlatSpec with Matchers {
   "An empty form" should "generate errors for the non optional fields" in {
@@ -23,14 +23,12 @@ class UserRegistrationTest extends FlatSpec with Matchers {
       NameIsEmpty,
       InvalidEmail(""),
       PasswordTooShort,
-      PasswordRequiresGreaterSymbolVariety
-    )
+      PasswordRequiresGreaterSymbolVariety)
 
     birthdayErrors shouldEqual Some(
       Set(
         YearIsNotAnInteger(""),
         MonthIsNotAnInteger(""),
-        DayIsNotAnInteger("")
-      ))
+        DayIsNotAnInteger("")))
   }
 }
