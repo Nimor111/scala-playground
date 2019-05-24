@@ -1,6 +1,6 @@
 package homework2
 
-import org.scalatest.{ FlatSpec, FunSuite, Matchers }
+import org.scalatest.{FlatSpec, FunSuite, Matchers}
 
 class ValidatedTest extends FlatSpec with Matchers {
   "zip" should "combine valid instances" in {
@@ -22,7 +22,7 @@ class ValidatedTest extends FlatSpec with Matchers {
   it should "concatenate invalid values" in {
     Invalid(Chain("Invalid password"))
       .map2(Invalid(Chain("Invalid username")))((a: String, b: String) => a + b) shouldEqual Invalid(
-        Chain("Invalid password", "Invalid username"))
+      Chain("Invalid password", "Invalid username"))
   }
 
   "zip" should "work on 3-tuples" in {
@@ -34,5 +34,19 @@ class ValidatedTest extends FlatSpec with Matchers {
     import homework2.Validated.OptionToValidated
     Some(1).toValidated("Field is empty") shouldEqual Valid(1)
     None.toValidated("Field is empty") shouldEqual Invalid("Field is empty")
+  }
+
+  "sequence" should "accumulate values" in {
+    val xs = List(Valid(1), Valid(2), Valid(3))
+    Validated.sequence(xs) shouldEqual Valid(List(1, 2, 3))
+  }
+
+  it should "accumulate errors" in {
+    val xs = List(Valid(1),
+                  Invalid("Not a number"),
+                  Valid(2),
+                  Invalid("No real roots"))
+    Validated.sequence(xs) shouldEqual Invalid(
+      Append(Singleton("Not a number"), Singleton("No real roots")))
   }
 }
